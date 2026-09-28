@@ -46,6 +46,23 @@ st.info(
     "Incident → Recall Experience → Recommend → "
     "Engineer Outcome → Learn → Improve Next Response"
 )
+st.markdown(
+    """
+    ### 🧠 How OpsMind Learns
+
+    **🚨 Incident**
+    ↓
+    **🔎 Recall Experience**
+    ↓
+    **🤖 AI Recommendation**
+    ↓
+    **👨‍💻 Engineer Outcome**
+    ↓
+    **💾 Hindsight Memory**
+    ↓
+    **📈 Better Future Response**
+    """
+)
 st.divider()
 
 
@@ -238,8 +255,8 @@ if st.session_state["learning_history"]:
     st.header("🧠 Memory Evolution")
 
     st.write(
-        "These are the engineering outcomes OpsMind has learned "
-        "during this session."
+        "OpsMind turns real engineering outcomes into persistent "
+        "experience that can influence future incident responses."
     )
 
     for record in reversed(
@@ -248,121 +265,153 @@ if st.session_state["learning_history"]:
 
         if record["outcome"] == "RESOLVED":
             outcome_icon = "✅"
+            outcome_label = "RESOLVED"
         else:
             outcome_icon = "❌"
+            outcome_label = "FAILED"
 
         with st.expander(
             f"{outcome_icon} {record['incident_id']} — "
-            f"{record['service']} — {record['outcome']}"
+            f"{record['service']} — {outcome_label}"
         ):
+
+            st.markdown("### 🔎 Incident")
 
             st.write(
                 f"**Problem:** {record['problem']}"
             )
 
-            st.write(
-                f"**Engineer Action:** {record['action']}"
-            )
+            st.markdown("### 👨‍💻 Engineer Action")
 
             st.write(
-                f"**Outcome:** {outcome_icon} "
-                f"{record['outcome']}"
+                record["action"]
             )
+
+            st.markdown("### 📊 Outcome")
 
             st.write(
-                f"**Lesson Learned:** {record['lesson']}"
+                f"{outcome_icon} **{outcome_label}**"
             )
 
+            st.markdown("### 💡 Lesson Learned")
+
+            st.info(
+                record["lesson"]
+            )
+
+            st.markdown("### 🔄 How This Improves OpsMind")
+
+            if record["outcome"] == "RESOLVED":
+
+                st.success(
+                    "This successful experience can be recalled "
+                    "when OpsMind analyzes similar future incidents."
+                )
+
+            else:
+
+                st.warning(
+                    "This failed experience can be recalled so "
+                    "OpsMind can warn engineers against repeating "
+                    "the same ineffective action."
+                )
 
     # --------------------------------------------------
-    # Why I Remember This
-    # --------------------------------------------------
+# Why I Remember This
+# --------------------------------------------------
 
-        st.divider()
+st.divider()
 
-    st.header("🔎 Why I Remember This")
+st.header("🔎 Why I Remember This")
 
-    st.write(
-        "OpsMind uses recorded engineering outcomes as future "
-        "experience. Successful and failed actions are both retained."
+st.write(
+    "OpsMind uses recorded engineering outcomes as future "
+    "experience. Successful and failed actions are both retained."
+)
+
+successful = []
+failed = []
+
+seen_successful = set()
+seen_failed = set()
+
+for r in st.session_state["learning_history"]:
+
+    key = (
+        r["incident_id"],
+        r["action"],
+        r["lesson"]
     )
 
-    successful = []
-    failed = []
+    if r["outcome"] == "RESOLVED":
 
-    seen_successful = set()
-    seen_failed = set()
+        if key not in seen_successful:
+            successful.append(r)
+            seen_successful.add(key)
 
-    for r in st.session_state["learning_history"]:
+    elif r["outcome"] == "FAILED":
 
-        key = (
-            r["incident_id"],
-            r["action"],
-            r["lesson"]
+        if key not in seen_failed:
+            failed.append(r)
+            seen_failed.add(key)
+
+
+col1, col2 = st.columns(2)
+
+
+with col1:
+
+    st.subheader("✅ Successful Experience")
+
+    if successful:
+
+        for record in successful:
+
+            with st.container(border=True):
+
+                st.write(
+                    f"**{record['incident_id']}**"
+                )
+
+                st.write(
+                    f"**Action:** {record['action']}"
+                )
+
+                st.write(
+                    f"**Lesson:** {record['lesson']}"
+                )
+
+    else:
+
+        st.info(
+            "No successful learning recorded yet."
         )
 
-        if r["outcome"] == "RESOLVED":
 
-            if key not in seen_successful:
-                successful.append(r)
-                seen_successful.add(key)
+with col2:
 
-        elif r["outcome"] == "FAILED":
+    st.subheader("❌ Failed Experience")
 
-            if key not in seen_failed:
-                failed.append(r)
-                seen_failed.add(key)
+    if failed:
 
-    col1, col2 = st.columns(2)
+        for record in failed:
 
-    with col1:
-
-        st.subheader("✅ Successful Experience")
-
-        if successful:
-
-            for record in successful:
+            with st.container(border=True):
 
                 st.write(
                     f"**{record['incident_id']}**"
                 )
 
                 st.write(
-                    f"Action: {record['action']}"
+                    f"**Action:** {record['action']}"
                 )
 
                 st.write(
-                    f"Lesson: {record['lesson']}"
+                    f"**Lesson:** {record['lesson']}"
                 )
 
-        else:
+    else:
 
-            st.info(
-                "No successful learning recorded yet."
-            )
-
-    with col2:
-
-        st.subheader("❌ Failed Experience")
-
-        if failed:
-
-            for record in failed:
-
-                st.write(
-                    f"**{record['incident_id']}**"
-                )
-
-                st.write(
-                    f"Action: {record['action']}"
-                )
-
-                st.write(
-                    f"Lesson: {record['lesson']}"
-                )
-
-        else:
-
-            st.info(
-                "No failed learning recorded yet."
-            )
+        st.info(
+            "No failed learning recorded yet."
+        )
